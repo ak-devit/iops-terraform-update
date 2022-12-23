@@ -1,6 +1,5 @@
-#=====================================================================
+
 #Public access 0.0.0.0 security group allowing all traffic
-#=====================================================================
 
 resource "aws_security_group" "iops-terraform-public-sg" {
   name        = "iops-terraform-public-sg"
@@ -46,9 +45,9 @@ resource "aws_security_group" "iops-terraform-public-sg" {
 }
 
 
-#=====================================================================
+
 #Private access security group for RDS DB
-#=====================================================================
+
 resource "aws_security_group" "iops-terraform-private-sg" {
   name        = "iops-terraform-private-sg"
   description = "Private access security group for db"
