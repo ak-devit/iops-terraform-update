@@ -1,14 +1,6 @@
-#=====================================================================
+
 #RDS instance resource.
 
-#MySQL
-# Constraints to the amount of storage for each storage type are the following:
-# General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.
-# Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.
-# Magnetic storage (standard): Must be an integer from 5 to 3072.
-
-
-#=====================================================================
 resource "aws_db_instance" "iops-terraform" {
   identifier            = var.identifier
   instance_class        = var.instance_class
@@ -39,12 +31,9 @@ resource "aws_db_instance" "iops-terraform" {
 }
 
 
-#=====================================================================
+
 #RDS Subnet group.
-# designates a collection of subnets that your RDS instance can be
-# provisioned in. This subnet group uses the subnets created by the
-# VPC module.
-#=====================================================================
+
 
 resource "aws_db_subnet_group" "terr_db_subnet_group" {
   name       = var.aws_db_subnet_group
