@@ -1,23 +1,21 @@
-#=====================================================================
 #Cluster
-#=====================================================================
 
 resource "aws_ecs_cluster" "terraform_cluster" {
   name = var.aws_ecs_cluster
 }
 
-#=====================================================================
+
 #Docker image resource
-#=====================================================================
+
 
 resource "docker_image" "wordpress_image" {
   name = var.docker_image
 }
 
 
-#======================================================================
+
 #Service aws_ecs_service
-#======================================================================
+
 resource "aws_ecs_service" "terraform_service" {
   name                = var.aws_ecs_service
   cluster             = aws_ecs_cluster.terraform_cluster.id
@@ -52,10 +50,10 @@ resource "aws_ecs_service" "terraform_service" {
 
 
 
-#=====================================================================
+
 #Task definition
 #Revision of an ECS task definition to be used in aws_ecs_service
-#=====================================================================
+
 resource "aws_ecs_task_definition" "iops_terraform_td" {
   #A unique name for your task definition.
   family       = "iops_terraform_td"
@@ -82,14 +80,6 @@ resource "aws_ecs_task_definition" "iops_terraform_td" {
         #   protocol      = "tcp"
         # },
       ]
-     #ENV VAR
-      environment = [
-        {
-          name =  "WORDPRESS_DB_HOST"
-          value = aws_db_instance.iops-terraform.address
-       }
-      ]
-      #ENV VAR
     }
   ])
   #ARN of the task execution role that the Amazon ECS container agent and the Docker daemon can assume.
@@ -112,21 +102,9 @@ resource "aws_ecs_task_definition" "iops_terraform_td" {
 
 
 
-#=====================================================================
+
 #Capasity provider 
 
-# For Amazon ECS workloads hosted on Amazon EC2 instances, you must create
-#  and maintain a capacity provider that consists of the following components:
-# -A name
-# -An Auto Scaling group
-# -The settings for managed scaling and managed termination protection.(?)
-
-# ECS capacity providers are used to manage the infrastructure the tasks in your clusters use.
-# Each cluster can have one or more capacity providers and an optional default capacity provider strategy. 
-# The capacity provider strategy determines how the tasks are spread across the cluster's capacity providers.
-# When you run a standalone task or create a service, you may either use the cluster's default capacity 
-#provider strategy or specify a capacity provider strategy that overrides the cluster's default strategy.
-#=====================================================================
 resource "aws_ecs_cluster_capacity_providers" "terrafform_esc_cps" {
   cluster_name = aws_ecs_cluster.terraform_cluster.name #cluster name
 
@@ -147,9 +125,8 @@ resource "aws_ecs_capacity_provider" "terrafform_esc_cp" {
 }
 
 
-#=====================================================================
+
 #Autoscaling group + launch configuration
-#=====================================================================
 
 resource "aws_autoscaling_group" "iops_terraform_ag" {
   name = var.aws_autoscaling_group
@@ -200,15 +177,14 @@ resource "aws_launch_configuration" "terraform_ecs_lc" {
   image_id             = data.aws_ami.latest_amazon_linux.id
   iam_instance_profile = aws_iam_instance_profile.ecs.name
   security_groups      = [aws_security_group.iops-terraform-public-sg.id]
-  user_data            = var.user_data #insert terr-cluster as var   ---> https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html
+  user_data            = var.user_data 
   instance_type        = var.instance_type
   ebs_optimized        = "false"
   key_name             = var.key_name
 
-  #(Optional) The ID of a ClassicLink-enabled VPC. Only applies to EC2-Classic instances. 
-  #vpc_classic_link_id  = 
+  
 
-  #------------------------------> 
+  
   # DEVICE STORADGE 
   #The root_block_device is the EBS volume provided by the AMI that will contain 
   #the operating system. If you don't configure it, AWS will use the default values from the AMI.
@@ -231,10 +207,9 @@ resource "aws_launch_configuration" "terraform_ecs_lc" {
 }
 
 
-#=====================================================================
-#Target group  | Load balancer | Listener(http 80)
-#https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group
-#=====================================================================
+
+#Target group 
+
 resource "aws_lb_target_group" "iops_terraform_tg" {
   name        = var.aws_lb_target
   port        = 80
@@ -280,22 +255,16 @@ resource "aws_lb_listener" "iops_terraform_lb_80_list" {
   #certificate_arn   = var.certificate_arn
 
   default_action {
-    #(Required) Type of routing action. Valid values are forward,
-    #redirect, fixed-response, authenticate-cognito and authenticate-oidc.
+   
     type             = "forward"
     target_group_arn = aws_lb_target_group.iops_terraform_tg.arn
   }
 }
 
 
-#=====================================================================
-#Create an IAM role for instances to use when they are launched
-# ( but has to be created auto?)   
 
-#Before adding ECS instances to a cluster - create ecs-optimized instances
-#with an IAM role that has the AmazonEC2ContainerServiceforEC2Role 
-#policy attached
-#=====================================================================
+#Create an IAM role for instances to use when they are launched
+
 data "aws_iam_policy_document" "ecs" {
   statement {
     actions = ["sts:AssumeRole"]
